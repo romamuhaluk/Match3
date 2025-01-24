@@ -29,20 +29,22 @@ AMatch3BlockGrid::AMatch3BlockGrid()
 void AMatch3BlockGrid::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	// Number of blocks
 	const int32 NumBlocks = Size;
 
-	// Loop to spawn each block
-	for(int32 BlockIndex = 0; BlockIndex<NumBlocks; BlockIndex++)
-	{
-		GridBlock.Add(TArray<AMatch3Block*>());  // Додаємо новий рядок
+	GridBlock.SetNum(Size); //SetNum для ініціалізації розміру масиву
 
-		for (int32 BlockIndex2 = 0; BlockIndex2 < NumBlocks; BlockIndex2++)
+	// Loop to spawn each block
+	for(int32 BlockIndex = 0; BlockIndex< Size; BlockIndex++)
+	{
+		GridBlock[BlockIndex].SetNum(Size);   // SetNum для кожного підмасиву
+
+		for (int32 BlockIndex2 = 0; BlockIndex2 < Size; BlockIndex2++)
 		{
 
-			const float XOffset = (BlockIndex2/Size) * BlockSpacing; // Divide by dimension
-			const float YOffset = (BlockIndex%Size) * BlockSpacing; // Modulo gives remainder
+			const float XOffset = (BlockIndex2%Size) * BlockSpacing; // Divide by dimension
+			const float YOffset = (BlockIndex%Size) * BlockSpacing;
 
 			// Make position vector, offset from Grid location
 			const FVector BlockLocation = FVector(XOffset, YOffset, 0.f) + GetActorLocation();
@@ -54,10 +56,11 @@ void AMatch3BlockGrid::BeginPlay()
 			if (NewBlock)
 			{
 				// Додаємо блок в відповідний рядок і стовпчик
-				GridBlock[BlockIndex].Add(NewBlock);   // де BlockIndex — це рядок, а BlockIndex2 — це стовпець.
+				GridBlock[BlockIndex][BlockIndex2] = NewBlock;   // де BlockIndex — це рядок, а BlockIndex2 — це стовпець.
 			}
 		}
 	}
+	
 }
 
 

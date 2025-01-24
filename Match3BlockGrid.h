@@ -45,7 +45,7 @@ protected:
 	// End AActor interface
 
 public:
-	UPROPERTY(Category = Grid, EditAnywhere)
+	UPROPERTY(Category = Grid, EditAnywhere, BlueprintReadOnly)
 	TArray<TArray<AMatch3Block*>> GridBlock;
 
 
