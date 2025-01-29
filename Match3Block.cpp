@@ -7,6 +7,8 @@
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInstance.h"
 
+static AMatch3Block* ActiveBlock;   // активний блок
+
 AMatch3Block::AMatch3Block()
 {
 	// Structure to hold one-time initialization
@@ -77,13 +79,18 @@ void AMatch3Block::OnFingerPressedBlock(ETouchIndex::Type FingerIndex, UPrimitiv
 
 void AMatch3Block::HandleClicked()
 {
-	
-	bIsActive = true;
-
-	// Change material
-	BlockMesh->SetMaterial(0, OrangeMaterial);
+		bIsActive = true;
 
 
+
+		if (!(ActiveBlock == nullptr)) {
+		ActiveBlock->BlockMesh->SetMaterial(0, BlueMaterial);
+		ActiveBlock->bIsActive = false;
+		}
+		ActiveBlock = this;
+		
+
+		BlockMesh->SetMaterial(0, OrangeMaterial);
 
 
 	

@@ -29,7 +29,6 @@ class AMatch3BlockGrid : public AActor
 public:
 	AMatch3BlockGrid();
 
-
 	/** Number of blocks along each side of grid */
 	UPROPERTY(Category = Grid, EditAnywhere, BlueprintReadOnly)
 	int32 Size;
@@ -44,9 +43,13 @@ protected:
 	virtual void BeginPlay() override;
 	// End AActor interface
 
+	
+
 public:
-	UPROPERTY(Category = Grid, EditAnywhere, BlueprintReadOnly)
-	TArray<TArray<AMatch3Block*>> GridBlock;
+	void CreateGrid();
+
+	//UPROPERTY(Category = Grid, EditAnywhere, BlueprintReadOnly)
+	class TArray<TArray<AMatch3Block*>> GridBlock;
 
 
 	/** Returns DummyRoot subobject **/

@@ -29,22 +29,26 @@ AMatch3BlockGrid::AMatch3BlockGrid()
 void AMatch3BlockGrid::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	// Number of blocks
-	const int32 NumBlocks = Size;
 
+	AMatch3BlockGrid::CreateGrid();
+
+	
+}
+
+void AMatch3BlockGrid::CreateGrid()
+{
 	GridBlock.SetNum(Size); //SetNum для ініціалізації розміру масиву
 
 	// Loop to spawn each block
-	for(int32 BlockIndex = 0; BlockIndex< Size; BlockIndex++)
+	for (int32 BlockIndex = 0; BlockIndex < Size; BlockIndex++)
 	{
 		GridBlock[BlockIndex].SetNum(Size);   // SetNum для кожного підмасиву
 
 		for (int32 BlockIndex2 = 0; BlockIndex2 < Size; BlockIndex2++)
 		{
 
-			const float XOffset = (BlockIndex2%Size) * BlockSpacing; // Divide by dimension
-			const float YOffset = (BlockIndex%Size) * BlockSpacing;
+			const float XOffset = (BlockIndex2 % Size) * BlockSpacing; // Divide by dimension
+			const float YOffset = (BlockIndex % Size) * BlockSpacing;
 
 			// Make position vector, offset from Grid location
 			const FVector BlockLocation = FVector(XOffset, YOffset, 0.f) + GetActorLocation();
@@ -60,7 +64,6 @@ void AMatch3BlockGrid::BeginPlay()
 			}
 		}
 	}
-	
 }
 
 
