@@ -26,6 +26,12 @@ class AMatch3Block : public AActor
 public:
 	AMatch3Block();
 
+	UFUNCTION()
+	void randomGem(UStaticMeshComponent* Component);
+
+	UFUNCTION()
+	int randomNum(int maxGems);
+
 	/** Are we currently active? */
 	bool bIsActive;
 
