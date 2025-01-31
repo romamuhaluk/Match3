@@ -1,11 +1,13 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Match3BlockGrid.h"
-//#include "Match3Block.h"
 #include "Components/TextRenderComponent.h"
 #include "Engine/World.h"
 
 #define LOCTEXT_NAMESPACE "PuzzleBlockGrid"
+
+TArray<TArray<AMatch3Block*>> GridBlock;
+int32 Size;
 
 AMatch3BlockGrid::AMatch3BlockGrid()
 {
@@ -32,8 +34,92 @@ void AMatch3BlockGrid::BeginPlay()
 
 	AMatch3BlockGrid::CreateGrid();
 
-	
+
 }
+
+/*
+перев≥р€Їмо кожне непарний гем, €кщо вони однаков≥ перев≥р€Їмо гем м≥ж ними, €кщо розм≥р с≥тки парний перев≥р€Їмо також останнЇ значенн€
+we check each odd gem, if they are the same we check the gem between them, if the grid size is even we also check the last value
+*/
+// де BlockIndex Ч це стовпець (column), а BlockIndex2 Ч це р€док (row).
+void AMatch3BlockGrid::CheckMatch() 
+{
+	UStaticMesh* comparGem(nullptr);
+
+	bool isGridEven = !(Size % 2);
+
+	for (int32 column = 0; column < Size; column++)  //column
+	{
+		comparGem = nullptr;
+
+		for (int32 row = 0; row < Size; row += 2)
+		{
+			if (!(row % 2)) {  // перев≥рка лише парних ≥ндекс≥в (непарн≥ гем≥в)
+				continue;
+			}
+			if (comparGem == nullptr) {
+				comparGem = GridBlock[column][row]->GetGemMesh()->GetStaticMesh();
+				continue;
+			}
+
+			if (comparGem == GridBlock[column][row]->GetGemMesh()->GetStaticMesh())
+			{
+				if (comparGem == GridBlock[column][row - 1]->GetGemMesh()->GetStaticMesh())
+				{
+					GridBlock[column][row]->SetActorHiddenInGame(true);
+					GridBlock[column][row - 1]->SetActorHiddenInGame(true);
+					GridBlock[column][row - 2]->SetActorHiddenInGame(true);
+				}
+			}
+		}
+		if (isGridEven) {   //if the grid size is even we also check the last value
+			if (comparGem == GridBlock[column][Size - 1]->GetGemMesh()->GetStaticMesh()) {
+				if (comparGem == GridBlock[column][Size - 3]->GetGemMesh()->GetStaticMesh()) {
+					GridBlock[column][Size - 1]->SetActorHiddenInGame(true);
+					GridBlock[column][Size - 2]->SetActorHiddenInGame(true);
+					GridBlock[column][Size - 3]->SetActorHiddenInGame(true);
+				}
+			}
+		}
+	}
+
+	for (int32 row = 0; row < Size; row++)  //row
+	{
+		comparGem = nullptr;
+
+		for (int32 column = 0; column < Size; column += 2)
+		{
+			if (!(column % 2)) {  // перев≥рка лише парних ≥ндекс≥в (непарн≥ гем≥в)
+				continue;
+			}
+			if (comparGem == nullptr) {
+				comparGem = GridBlock[row][column]->GetGemMesh()->GetStaticMesh();
+				continue;
+			}
+
+			if (comparGem == GridBlock[row][column]->GetGemMesh()->GetStaticMesh())
+			{
+				if (comparGem == GridBlock[row][column - 1]->GetGemMesh()->GetStaticMesh())
+				{
+					GridBlock[row][column]->SetActorHiddenInGame(true);
+					GridBlock[row][column - 1]->SetActorHiddenInGame(true);
+					GridBlock[row][column - 2]->SetActorHiddenInGame(true);
+				}
+			}
+		}
+		if (isGridEven) {   //if the grid size is even we also check the last value
+			if (comparGem == GridBlock[row][Size - 1]->GetGemMesh()->GetStaticMesh()) {
+				if (comparGem == GridBlock[row][Size - 3]->GetGemMesh()->GetStaticMesh()) {
+					GridBlock[row][Size - 1]->SetActorHiddenInGame(true);
+					GridBlock[row][Size - 2]->SetActorHiddenInGame(true);
+					GridBlock[row][Size - 3]->SetActorHiddenInGame(true);
+				}
+			}
+		}
+	}
+}
+
+//SetActorHiddenInGame(true);
 
 void AMatch3BlockGrid::CreateGrid()
 {
@@ -59,8 +145,9 @@ void AMatch3BlockGrid::CreateGrid()
 
 			if (NewBlock)
 			{
+				NewBlock->positionInGrid = BlockIndex*1000 + BlockIndex2;
 				// ƒодаЇмо блок в в≥дпов≥дний р€док ≥ стовпчик
-				GridBlock[BlockIndex][BlockIndex2] = NewBlock;   // де BlockIndex Ч це р€док, а BlockIndex2 Ч це стовпець.
+				GridBlock[BlockIndex][BlockIndex2] = NewBlock;   // де BlockIndex Ч це стовпець, а BlockIndex2 Ч це р€док.
 			}
 		}
 	}

@@ -17,7 +17,7 @@ class AMatch3Block : public AActor
 	class USceneComponent* DummyRoot;
 
 	UPROPERTY(Category = Block, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UStaticMeshComponent* MyComponentGems;
+	class UStaticMeshComponent* MyComponentGems;
 
 	/** StaticMesh component for the clickable block */
 	UPROPERTY(Category = Block, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -34,6 +34,9 @@ public:
 
 	/** Are we currently active? */
 	bool bIsActive;
+
+	UPROPERTY(EditAnywhere)
+	int positionInGrid;
 
 	/** Pointer to white material used on the focused block */
 	UPROPERTY()
@@ -63,12 +66,15 @@ public:
 
 	void Highlight(bool bOn);
 
+	void MoveGems(AMatch3Block* Object1, AMatch3Block* Object2);
+
 public:
 	/** Returns DummyRoot subobject **/
 	FORCEINLINE class USceneComponent* GetDummyRoot() const { return DummyRoot; }
 	/** Returns BlockMesh subobject **/
 	FORCEINLINE class UStaticMeshComponent* GetBlockMesh() const { return BlockMesh; }
 
+	FORCEINLINE class UStaticMeshComponent* GetGemMesh() const { return MyComponentGems; }
 };
 
 

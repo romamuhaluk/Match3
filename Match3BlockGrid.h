@@ -30,8 +30,8 @@ public:
 	AMatch3BlockGrid();
 
 	/** Number of blocks along each side of grid */
-	UPROPERTY(Category = Grid, EditAnywhere, BlueprintReadOnly)
-	int32 Size;
+	//UPROPERTY(Category = Grid, EditAnywhere, BlueprintReadOnly)
+	//int32 Size;
 
 	/** Spacing of blocks */
 	UPROPERTY(Category = Grid, EditAnywhere, BlueprintReadOnly)
@@ -42,14 +42,12 @@ protected:
 	// Begin AActor interface
 	virtual void BeginPlay() override;
 	// End AActor interface
-
 	
 
 public:
 	void CreateGrid();
 
-	//UPROPERTY(Category = Grid, EditAnywhere, BlueprintReadOnly)
-	class TArray<TArray<AMatch3Block*>> GridBlock;
+	void CheckMatch();
 
 
 	/** Returns DummyRoot subobject **/
