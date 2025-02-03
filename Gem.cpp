@@ -160,4 +160,6 @@ void AGem::SwapGems(AGem* Object2)
 	int temp = this->positionInGrid;
 	this->positionInGrid = Object2->positionInGrid;
 	Object2->positionInGrid = temp;
+
+	//AMatch3BlockGrid::CheckMatch();
 }

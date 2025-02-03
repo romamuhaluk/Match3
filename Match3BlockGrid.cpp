@@ -34,94 +34,79 @@ void AMatch3BlockGrid::BeginPlay()
 
 	AMatch3BlockGrid::CreateGrid();
 
+    AMatch3BlockGrid::CheckMatch();
 
 }
 
 /*
-перевіряємо кожне непарний гем, якщо вони однакові перевіряємо гем між ними, якщо розмір сітки парний перевіряємо також останнє значення
-we check each odd gem, if they are the same we check the gem between them, if the grid size is even we also check the last value
+перевіряємо кожне непарний гем, якщо вони однакові перевіряємо гем між ними, якщо розмір сітки парний перевіряємо також останнє значення з передостаннім
+we check each odd gem, if they are the same we check the gem between them, if the grid size is even we also check the last value with the penultimate
 */
 // де BlockIndex — це стовпець (column), а BlockIndex2 — це рядок (row).
 
-/*
-void AMatch3BlockGrid::CheckMatch() 
+
+void AMatch3BlockGrid::CheckMatch()
 {
-	UStaticMesh* comparGem(nullptr);
+    //UStaticMesh* comparGem(nullptr);
 
-	bool isGridEven = !(Size % 2);
+    //UStaticMesh* ActiveGemMesh;
 
-	for (int32 column = 0; column < Size; column++)  //column
-	{
-		comparGem = nullptr;
+    int consecutiveMatches(0);
 
-		for (int32 row = 0; row < Size; row += 2)
-		{
-			if (!(row % 2)) {  // перевірка лише парних індексів (непарні гемів)
-				continue;
-			}
-			if (comparGem == nullptr) {
-				comparGem = GridBlock[column][row]->GetGemMesh()->GetStaticMesh();
-				continue;
-			}
+    for (int column = 0; column < Size; column++)  //column
+    {  
+        consecutiveMatches = 0;
 
-			if (comparGem == GridBlock[column][row]->GetGemMesh()->GetStaticMesh())
-			{
-				if (comparGem == GridBlock[column][row - 1]->GetGemMesh()->GetStaticMesh())
-				{
-					GridBlock[column][row]->SetActorHiddenInGame(true);
-					GridBlock[column][row - 1]->SetActorHiddenInGame(true);
-					GridBlock[column][row - 2]->SetActorHiddenInGame(true);
-				}
-			}
-		}
-		if (isGridEven) {   //if the grid size is even we also check the last value
-			if (comparGem == GridBlock[column][Size - 1]->GetGemMesh()->GetStaticMesh()) {
-				if (comparGem == GridBlock[column][Size - 3]->GetGemMesh()->GetStaticMesh()) {
-					GridBlock[column][Size - 1]->SetActorHiddenInGame(true);
-					GridBlock[column][Size - 2]->SetActorHiddenInGame(true);
-					GridBlock[column][Size - 3]->SetActorHiddenInGame(true);
-				}
-			}
-		}
-	}
+        for (int row = 0; row < (Size - 1); row++)
+        {
+            if (Grid[column][row]->gem->GetGemMesh()->GetStaticMesh() == Grid[column][row + 1]->gem->GetGemMesh()->GetStaticMesh()
+                && consecutiveMatches != 4) 
+            { 
+                consecutiveMatches++; 
+            }
+            
+            else 
+            {
+                if (consecutiveMatches >= 2) 
+                {
+                    for (int tempRow = row; consecutiveMatches >= 0; consecutiveMatches--, tempRow--)
+                    {
+                        Grid[column][tempRow]->gem->SetActorHiddenInGame(true);
+                    }
+                }
+                else{ consecutiveMatches = 0; }
+            }
+        }
+    }
 
-	for (int32 row = 0; row < Size; row++)  //row
-	{
-		comparGem = nullptr;
+    consecutiveMatches = 0;
+    
+    for (int row = 0; row < Size; row++)  //row
+    {
+        consecutiveMatches = 0;
 
-		for (int32 column = 0; column < Size; column += 2)
-		{
-			if (!(column % 2)) {  // перевірка лише парних індексів (непарні гемів)
-				continue;
-			}
-			if (comparGem == nullptr) {
-				comparGem = GridBlock[row][column]->GetGemMesh()->GetStaticMesh();
-				continue;
-			}
+        for (int column = 0; column < (Size - 1); column++)
+        {
+            if (Grid[column][row]->gem->GetGemMesh()->GetStaticMesh() == Grid[column + 1][row]->gem->GetGemMesh()->GetStaticMesh()
+                && consecutiveMatches != 4)
+            {
+                consecutiveMatches++;
+            }
 
-			if (comparGem == GridBlock[row][column]->GetGemMesh()->GetStaticMesh())
-			{
-				if (comparGem == GridBlock[row][column - 1]->GetGemMesh()->GetStaticMesh())
-				{
-					GridBlock[row][column]->SetActorHiddenInGame(true);
-					GridBlock[row][column - 1]->SetActorHiddenInGame(true);
-					GridBlock[row][column - 2]->SetActorHiddenInGame(true);
-				}
-			}
-		}
-		if (isGridEven) {   //if the grid size is even we also check the last value
-			if (comparGem == GridBlock[row][Size - 1]->GetGemMesh()->GetStaticMesh()) {
-				if (comparGem == GridBlock[row][Size - 3]->GetGemMesh()->GetStaticMesh()) {
-					GridBlock[row][Size - 1]->SetActorHiddenInGame(true);
-					GridBlock[row][Size - 2]->SetActorHiddenInGame(true);
-					GridBlock[row][Size - 3]->SetActorHiddenInGame(true);
-				}
-			}
-		}
-	}
+            else
+            {
+                if (consecutiveMatches >= 2)
+                {
+                    for (int tempColumn = column; consecutiveMatches >= 0; consecutiveMatches--, tempColumn--)
+                    {
+                        Grid[tempColumn][row]->gem->SetActorHiddenInGame(true);
+                    }
+                }
+                else { consecutiveMatches = 0; }
+            }
+        }
+    }
 }
-*/
-//SetActorHiddenInGame(true);
 
 void AMatch3BlockGrid::CreateGrid()
 {

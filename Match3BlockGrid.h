@@ -62,7 +62,7 @@ protected:
 public:
 	void CreateGrid();
 
-	//void CheckMatch();
+	void CheckMatch();
 
 	/** Returns DummyRoot subobject **/
 	FORCEINLINE class USceneComponent* GetDummyRoot() const { return DummyRoot; }
