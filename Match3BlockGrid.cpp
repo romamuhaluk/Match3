@@ -6,7 +6,7 @@
 
 #define LOCTEXT_NAMESPACE "PuzzleBlockGrid"
 
-TArray<TArray<AMatch3Block*>> GridBlock;
+TArray<TArray<FGridElement*>> Grid;
 int32 Size;
 
 AMatch3BlockGrid::AMatch3BlockGrid()
@@ -42,6 +42,8 @@ void AMatch3BlockGrid::BeginPlay()
 we check each odd gem, if they are the same we check the gem between them, if the grid size is even we also check the last value
 */
 // де BlockIndex — це стовпець (column), а BlockIndex2 — це рядок (row).
+
+/*
 void AMatch3BlockGrid::CheckMatch() 
 {
 	UStaticMesh* comparGem(nullptr);
@@ -118,17 +120,17 @@ void AMatch3BlockGrid::CheckMatch()
 		}
 	}
 }
-
+*/
 //SetActorHiddenInGame(true);
 
 void AMatch3BlockGrid::CreateGrid()
 {
-	GridBlock.SetNum(Size); //SetNum для ініціалізації розміру масиву
+	Grid.SetNum(Size); //SetNum для ініціалізації розміру масиву
 
 	// Loop to spawn each block
 	for (int32 BlockIndex = 0; BlockIndex < Size; BlockIndex++)
 	{
-		GridBlock[BlockIndex].SetNum(Size);   // SetNum для кожного підмасиву
+		Grid[BlockIndex].SetNum(Size);   // SetNum для кожного підмасиву
 
 		for (int32 BlockIndex2 = 0; BlockIndex2 < Size; BlockIndex2++)
 		{
@@ -139,15 +141,22 @@ void AMatch3BlockGrid::CreateGrid()
 			// Make position vector, offset from Grid location
 			const FVector BlockLocation = FVector(XOffset, YOffset, 0.f) + GetActorLocation();
 
-
 			// Spawn a block
 			AMatch3Block* NewBlock = GetWorld()->SpawnActor<AMatch3Block>(BlockLocation, FRotator(0, 0, 0));
 
-			if (NewBlock)
+			AGem* NewGem = GetWorld()->SpawnActor<AGem>((BlockLocation + FVector(0, 0, 40.f)), FRotator(0, 0, 0));
+
+			if (NewBlock && NewGem)
 			{
-				NewBlock->positionInGrid = BlockIndex*1000 + BlockIndex2;
-				// Додаємо блок в відповідний рядок і стовпчик
-				GridBlock[BlockIndex][BlockIndex2] = NewBlock;   // де BlockIndex — це стовпець, а BlockIndex2 — це рядок.
+				Grid[BlockIndex][BlockIndex2] = new FGridElement();  // Виділення пам'яті для кожного елемента
+
+				NewBlock->positionInGrid = BlockIndex * 1000 + BlockIndex2;
+				NewGem->positionInGrid = BlockIndex * 1000 + BlockIndex2;
+
+				// Додаємо в відповідний рядок і стовпчик
+				Grid[BlockIndex][BlockIndex2]->block = NewBlock;   // де BlockIndex — це стовпець, а BlockIndex2 — це рядок.
+				Grid[BlockIndex][BlockIndex2]->gem = NewGem;
+				
 			}
 		}
 	}

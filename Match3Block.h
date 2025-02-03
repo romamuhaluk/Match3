@@ -2,9 +2,15 @@
 
 #pragma once
 
+
+#include "Match3BlockGrid.h"
+#include "Gem.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Match3Block.generated.h"
+
+class AGem;
+extern AMatch3Block* ActiveBlock;
 
 /** A block that can be clicked */
 UCLASS(minimalapi)
@@ -16,9 +22,6 @@ class AMatch3Block : public AActor
 	UPROPERTY(Category = Block, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class USceneComponent* DummyRoot;
 
-	UPROPERTY(Category = Block, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* MyComponentGems;
-
 	/** StaticMesh component for the clickable block */
 	UPROPERTY(Category = Block, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* BlockMesh;
@@ -26,14 +29,12 @@ class AMatch3Block : public AActor
 public:
 	AMatch3Block();
 
-	UFUNCTION()
-	void randomGem(UStaticMeshComponent* Component);
-
-	UFUNCTION()
-	int randomNum(int maxGems);
-
 	/** Are we currently active? */
 	bool bIsActive;
+
+	/** Grid that owns us */
+	UPROPERTY()
+	class AMatch3BlockGrid* OwningGrid;
 
 	UPROPERTY(EditAnywhere)
 	int positionInGrid;
@@ -50,10 +51,6 @@ public:
 	UPROPERTY()
 	class UMaterialInstance* OrangeMaterial;
 
-	/** Grid that owns us */
-	UPROPERTY()
-	class AMatch3BlockGrid* OwningGrid;
-
 	/** Handle the block being clicked */
 	UFUNCTION()
 	void BlockClicked(UPrimitiveComponent* ClickedComp, FKey ButtonClicked);
@@ -66,16 +63,11 @@ public:
 
 	void Highlight(bool bOn);
 
-	void MoveGems(AMatch3Block* Object1, AMatch3Block* Object2);
-
-public:
 	/** Returns DummyRoot subobject **/
 	FORCEINLINE class USceneComponent* GetDummyRoot() const { return DummyRoot; }
+
+	//FORCEINLINE class USceneComponent* GetGemRoot() const { return GemRoot; }
 	/** Returns BlockMesh subobject **/
 	FORCEINLINE class UStaticMeshComponent* GetBlockMesh() const { return BlockMesh; }
 
-	FORCEINLINE class UStaticMeshComponent* GetGemMesh() const { return MyComponentGems; }
 };
-
-
-

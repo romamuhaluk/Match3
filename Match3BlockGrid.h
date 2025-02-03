@@ -3,13 +3,28 @@
 #pragma once
 
 #include "Match3Block.h"
+#include "Gem.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Match3BlockGrid.generated.h"
 
-
 class AMatch3Block;
+class AGem;
+
+extern TArray<TArray<FGridElement*>> Grid;
+
+USTRUCT()
+struct FGridElement  // Unreal Engine рекомендує префікс "F" для структур
+{
+	GENERATED_BODY() // Додаємо макрос для віддзеркалення
+
+	UPROPERTY() // Додаємо UPROPERTY, якщо потрібно серіалізувати
+	AMatch3Block* block;
+
+	UPROPERTY()
+	AGem* gem;
+};
 
 /** Class used to spawn blocks and manage score */
 UCLASS(minimalapi)
@@ -47,10 +62,10 @@ protected:
 public:
 	void CreateGrid();
 
-	void CheckMatch();
-
+	//void CheckMatch();
 
 	/** Returns DummyRoot subobject **/
 	FORCEINLINE class USceneComponent* GetDummyRoot() const { return DummyRoot; }
 
 };
+
