@@ -12,6 +12,7 @@
 class AMatch3Block;
 class AGem;
 
+extern AMatch3BlockGrid* GridObject;
 extern TArray<TArray<FGridElement*>> Grid;
 
 USTRUCT()

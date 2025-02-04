@@ -9,7 +9,6 @@
 #include "GameFramework/Actor.h"
 #include "Gem.generated.h"
 
-
 UCLASS()
 class MATCH3_API AGem : public AActor
 {
@@ -55,8 +54,17 @@ public:
 	UFUNCTION()
 	void Highlight(bool bOn);
 
-	// Called every frame
-	//virtual void Tick(float DeltaTime) override;
+	FVector StartLocation;
+	FVector EndLocation;
+	bool bIsSwapping;
+	AGem* SwapObject;
+	float ElapsedTime;
+
+	void Tick(float DeltaTime);
+	void UpdateGridPositionAfterSwap(AGem* Object2);
+
+	//NewObject<  >(this);
+
 
 	FORCEINLINE class UStaticMeshComponent* GetGemMesh() const { return MyComponentGems; }
 

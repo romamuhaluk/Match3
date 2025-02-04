@@ -8,12 +8,15 @@
 
 TArray<TArray<FGridElement*>> Grid;
 int32 Size;
+AMatch3BlockGrid* GridObject;
 
 AMatch3BlockGrid::AMatch3BlockGrid()
 {
 	// Create dummy root scene component
 	DummyRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Dummy0"));
 	RootComponent = DummyRoot;
+
+    GridObject = this;
 
 	// Create static mesh component
 	//ScoreText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("ScoreText0"));
@@ -38,18 +41,8 @@ void AMatch3BlockGrid::BeginPlay()
 
 }
 
-/*
-перев≥р€Їмо кожне непарний гем, €кщо вони однаков≥ перев≥р€Їмо гем м≥ж ними, €кщо розм≥р с≥тки парний перев≥р€Їмо також останнЇ значенн€ з передостанн≥м
-we check each odd gem, if they are the same we check the gem between them, if the grid size is even we also check the last value with the penultimate
-*/
-// де BlockIndex Ч це стовпець (column), а BlockIndex2 Ч це р€док (row).
-
-
 void AMatch3BlockGrid::CheckMatch()
 {
-    //UStaticMesh* comparGem(nullptr);
-
-    //UStaticMesh* ActiveGemMesh;
 
     int consecutiveMatches(0);
 
@@ -57,10 +50,11 @@ void AMatch3BlockGrid::CheckMatch()
     {  
         consecutiveMatches = 0;
 
-        for (int row = 0; row < (Size - 1); row++)
+        for (int row = 0; row < Size; row++)
         {
-            if (Grid[column][row]->gem->GetGemMesh()->GetStaticMesh() == Grid[column][row + 1]->gem->GetGemMesh()->GetStaticMesh()
-                && consecutiveMatches != 4) 
+            if (row != Size - 1 &&
+                Grid[column][row]->gem->GetGemMesh()->GetStaticMesh() == Grid[column][row + 1]->gem->GetGemMesh()->GetStaticMesh()
+                && consecutiveMatches != 4 ) 
             { 
                 consecutiveMatches++; 
             }
@@ -85,9 +79,10 @@ void AMatch3BlockGrid::CheckMatch()
     {
         consecutiveMatches = 0;
 
-        for (int column = 0; column < (Size - 1); column++)
+        for (int column = 0; column < Size; column++)
         {
-            if (Grid[column][row]->gem->GetGemMesh()->GetStaticMesh() == Grid[column + 1][row]->gem->GetGemMesh()->GetStaticMesh()
+            if (column != Size - 1 &&
+                Grid[column][row]->gem->GetGemMesh()->GetStaticMesh() == Grid[column + 1][row]->gem->GetGemMesh()->GetStaticMesh()
                 && consecutiveMatches != 4)
             {
                 consecutiveMatches++;
@@ -108,6 +103,7 @@ void AMatch3BlockGrid::CheckMatch()
     }
 }
 
+// де BlockIndex Ч це стовпець (column), а BlockIndex2 Ч це р€док (row).
 void AMatch3BlockGrid::CreateGrid()
 {
 	Grid.SetNum(Size); //SetNum дл€ ≥н≥ц≥ал≥зац≥њ розм≥ру масиву
