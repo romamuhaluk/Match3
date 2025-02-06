@@ -39,7 +39,7 @@ class AMatch3BlockGrid : public AActor
 
 	/** Dummy root component */
 	//UPROPERTY(Category = Grid, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UPROPERTY(Category = Grid, EditAnywhere)
+	//UPROPERTY(Category = Grid, EditAnywhere)
 	class USceneComponent* DummyRoot;
 
 	/** Text component for the score */

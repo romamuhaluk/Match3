@@ -119,6 +119,18 @@ void AMatch3Block::HandleClicked()
 					{
 						Grid[column][row]->gem->SwapGems(Grid[newColumn][newRow]->gem);
 					}
+					if (Grid[column][row]->gem == nullptr)
+					{
+						// Оновлюємо знання обєкта про свою майбутню позицію в grid
+						Grid[newColumn][newRow]->gem->columnInGrid = column;
+						Grid[newColumn][newRow]->gem->rowInGrid = row;
+
+						// Оновлюємо позицію в гриді
+						Grid[column][row]->gem = Grid[newColumn][newRow]->gem;
+						Grid[newColumn][newRow]->gem = nullptr;
+
+						Grid[column][row]->gem->SwapOnPoint(Grid[column][row]->point);
+					}
 				}				
 				//GridObject->CheckMatch();
 				break;  // Якщо вже знайдений збіг, більше не потрібно перевіряти інші напрямки

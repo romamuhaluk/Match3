@@ -143,6 +143,10 @@ void AGem::SwapOnPoint(FVector point)  // свап з пустою коміркою
 
 	SwapObject = nullptr;
 
+	this->ElapsedTime = 0.0f;
+
+	this->GetGemMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 	// Починаємо анімацію (плавний рух)
 	bIsSwapping = true;
 }
@@ -165,9 +169,18 @@ void AGem::SwapGems(AGem* Object2)
 		this->SwapObject = Object2;
 		Object2->SwapObject = this;
 
+		//Вимикаємо взаємодію з обєктами поки вони рухаються
+		this->GetGemMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Grid[columnInGrid][rowInGrid]->block->GetBlockMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Object2->GetGemMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Grid[Object2->columnInGrid][Object2->rowInGrid]->block->GetBlockMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		this->ElapsedTime = 0.0f;
+		//Object2->ElapsedTime = 0.0f;
+
 		// Починаємо анімацію (плавний рух)
 		this->bIsSwapping = true;
-		Object2->bIsSwapping = true;
+		//Object2->bIsSwapping = true;
 	}
 }
 
@@ -178,23 +191,31 @@ void AGem::Tick(float DeltaTime)
 	// Якщо об'єкти в процесі обміну, оновлюємо їх позиції
 	if (bIsSwapping)
 	{
-		float SwapDuration(0.6); //0.45
+		float SwapDuration(0.4); //0.6
 
 		ElapsedTime += DeltaTime;
+
+		if (ElapsedTime < 0.15 * SwapDuration && ElapsedTime < 0.25) 
+		{
+			SwapDuration = 1.5;
+		}
+
 		float Progress = FMath::Clamp(ElapsedTime / SwapDuration, 0.0f, 1.0f);
 
+		FVector RoundingVector(0, 250.0f, 350.0f);
+
 		// Обчислюємо нові позиції для кожного об'єкта
-		FVector NewPos1 = FMath::Lerp(StartLocation, EndLocation, Progress);
+		FVector NewPos1 = FMath::Lerp(StartLocation + RoundingVector * Progress, EndLocation, Progress);
 
 		// Оновлюємо позиції об'єктів
 		this->SetActorLocation(NewPos1);
-		/*
+		
 		if(SwapObject)
 		{
-			FVector NewPos2 = FMath::Lerp(SwapObject->StartLocation, SwapObject->EndLocation, Progress);
+			FVector NewPos2 = FMath::Lerp(SwapObject->StartLocation - RoundingVector * Progress, SwapObject->EndLocation, Progress);
 			SwapObject->SetActorLocation(NewPos2);
 		}
-		*/
+		
 
 		// Якщо анімація завершена, зупиняємо її
 		if (Progress >= 1.0f)
@@ -206,7 +227,7 @@ void AGem::Tick(float DeltaTime)
 
 	if (this->GetGemMesh()->IsSimulatingPhysics()) // вектор фізики
 	{
-		this->GetGemMesh()->AddForce(FVector(-5000.0f, 0.0f, 200.0f), NAME_None, true);
+		this->GetGemMesh()->AddForce(FVector(-13000.0f, 0.0f, 200.0f), NAME_None, true);
 	}
 
 	FVector Location = GetActorLocation();
@@ -224,15 +245,21 @@ void AGem::UpdateGridPositionAfterSwap(AGem* Object2)
 	bIsSwapping = false;
 
 	this->SetActorLocation(EndLocation);
-	
-	int tempColumn = this->columnInGrid;
-	int tempRow = this->rowInGrid;
+
+	this->GetGemMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	Grid[columnInGrid][rowInGrid]->block->GetBlockMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
 	if(SwapObject != nullptr)
 	{
+		int tempColumn = this->columnInGrid;
+		int tempRow = this->rowInGrid;
+
 		SwapObject->bIsSwapping = false;
 
 		SwapObject->SetActorLocation(SwapObject->EndLocation);
+
+		Object2->GetGemMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		Grid[Object2->columnInGrid][Object2->rowInGrid]->block->GetBlockMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
 		// Оновлюємо позиції в гриді
 		Grid[columnInGrid][rowInGrid]->gem = Object2;

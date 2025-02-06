@@ -119,6 +119,8 @@ void AMatch3BlockGrid::CheckMatch()
                         Grid[column][tempRow]->gem->GetGemMesh()->OnClicked.Clear(); 
                         Grid[column][tempRow]->gem->GetGemMesh()->OnInputTouchBegin.Clear();
 
+                        Grid[column][tempRow]->gem->GetGemMesh()->AddForce(FVector(10000.0f, 0.0f, 5000.0f), NAME_None, true);
+
                         Grid[column][tempRow]->gem = nullptr;
                     }
                 }
@@ -152,6 +154,8 @@ void AMatch3BlockGrid::CheckMatch()
                         //Grid[tempColumn][row]->gem->SetActorHiddenInGame(true);
                         Grid[tempColumn][row]->gem->GetGemMesh()->SetSimulatePhysics(true);
                         Grid[tempColumn][row]->gem->GetGemMesh()->SetEnableGravity(true);
+
+                        Grid[tempColumn][row]->gem->GetGemMesh()->AddForce(FVector(50000.0f, 0.0f, 10000.0f), NAME_None, true);
 
                         Grid[tempColumn][row]->gem = nullptr;
                     }

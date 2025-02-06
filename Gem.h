@@ -68,9 +68,6 @@ public:
 	void Tick(float DeltaTime);
 	void UpdateGridPositionAfterSwap(AGem* Object2);
 
-	//NewObject<  >(this);
-
-
 	FORCEINLINE class UStaticMeshComponent* GetGemMesh() const { return MyComponentGems; }
 
 	FORCEINLINE class USceneComponent* GetGemRoot() const { return GemRoot; }
