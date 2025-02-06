@@ -41,18 +41,23 @@ protected:
 	void GemClicked(UPrimitiveComponent* ClickedComp, FKey ButtonClicked);
 
 public:	
+	UPROPERTY(EditAnywhere)
+	int columnInGrid;
 
 	UPROPERTY(EditAnywhere)
-	int positionInGrid;
-
-	UFUNCTION()
-	void SwapGems(AGem* Object2);
+	int rowInGrid;
 
 	UFUNCTION()
 	void HandleClicked();
 
 	UFUNCTION()
 	void Highlight(bool bOn);
+
+	UFUNCTION()
+	void SwapGems(AGem* Object2);
+
+	UFUNCTION()
+	void SwapOnPoint(FVector point);
 
 	FVector StartLocation;
 	FVector EndLocation;

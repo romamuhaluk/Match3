@@ -56,7 +56,8 @@ AGem::AGem()
 	MyComponentGems->OnClicked.AddDynamic(this, &AGem::GemClicked);         //Реєструє динамічний обробник події OnClicked
 	MyComponentGems->OnInputTouchBegin.AddDynamic(this, &AGem::OnFingerPressedGem);  //Реєструє обробник події OnInputTouchBegin
 
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = true;  
+	ElapsedTime = 0.1f;     // Встановлюємо змінну для анімації
 }
 
 // Called when the game starts or when spawned
@@ -118,53 +119,56 @@ void AGem::OnFingerPressedGem(ETouchIndex::Type FingerIndex, UPrimitiveComponent
 
 void AGem::Highlight(bool bOn)
 {
-	int column = this->positionInGrid / 1000;
-	int row = this->positionInGrid % 1000;
 
-	if (Grid[column][row]->block != nullptr)
+	if (Grid[columnInGrid][rowInGrid]->block != nullptr)
 	{
-		Grid[column][row]->block->Highlight(bOn);
+		Grid[columnInGrid][rowInGrid]->block->Highlight(bOn);
 	}
 }
 
 void AGem::HandleClicked()
 {
-	int column = this->positionInGrid / 1000;
-	int row = this->positionInGrid % 1000;
-
-	if (Grid[column][row]->block != nullptr) 
+	if (Grid[columnInGrid][rowInGrid]->block != nullptr)
 	{
-		Grid[column][row]->block->HandleClicked();
+		Grid[columnInGrid][rowInGrid]->block->HandleClicked();
 	}
+}
+
+void AGem::SwapOnPoint(FVector point)  // свап з пустою коміркою
+{
+	// Зберігаємо початкову позицію
+	StartLocation = this->GetActorLocation();
+	// Визначаємо кінцеву позицію
+	EndLocation = point;
+
+	SwapObject = nullptr;
+
+	// Починаємо анімацію (плавний рух)
+	bIsSwapping = true;
 }
 
 void AGem::SwapGems(AGem* Object2)
 {
-	FVector StartPos1 = this->GetActorLocation();
-	FVector StartPos2 = Object2->GetActorLocation();
+	if (Object2 != nullptr) {
+		FVector StartPos1 = this->GetActorLocation();
+		FVector StartPos2 = Object2->GetActorLocation();
 
-	// Зберігаємо початкові позиції
-	this->StartLocation = StartPos1;
-	Object2->StartLocation = StartPos2;
+		// Зберігаємо початкові позиції
+		this->StartLocation = StartPos1;
+		Object2->StartLocation = StartPos2;
 
-	// Визначаємо кінцеві позиції
-	this->EndLocation = StartPos2;
-	Object2->EndLocation = StartPos1;
+		// Визначаємо кінцеві позиції
+		this->EndLocation = StartPos2;
+		Object2->EndLocation = StartPos1;
 
-	// Починаємо анімацію (плавний рух)
-	this->bIsSwapping = true;
-	Object2->bIsSwapping = true;
+		// Зберігаємо ссилки на об'єкти, щоб вони змінювали позиції в процесі
+		this->SwapObject = Object2;
+		Object2->SwapObject = this;
 
-	// Зберігаємо ссилки на об'єкти, щоб вони змінювали позиції в процесі
-	this->SwapObject = Object2;
-	Object2->SwapObject = this;
-
-	// Встановлюємо змінну для анімації
-	this->ElapsedTime = 0.1f;
-	Object2->ElapsedTime = 0.1f;
-
-	// Оновлюємо грид
-	//UpdateGridPositionAfterSwap(Object2);
+		// Починаємо анімацію (плавний рух)
+		this->bIsSwapping = true;
+		Object2->bIsSwapping = true;
+	}
 }
 
 void AGem::Tick(float DeltaTime)
@@ -174,77 +178,73 @@ void AGem::Tick(float DeltaTime)
 	// Якщо об'єкти в процесі обміну, оновлюємо їх позиції
 	if (bIsSwapping)
 	{
-		float SwapDuration(0.5);
+		float SwapDuration(0.6); //0.45
 
 		ElapsedTime += DeltaTime;
 		float Progress = FMath::Clamp(ElapsedTime / SwapDuration, 0.0f, 1.0f);
 
 		// Обчислюємо нові позиції для кожного об'єкта
 		FVector NewPos1 = FMath::Lerp(StartLocation, EndLocation, Progress);
-		FVector NewPos2 = FMath::Lerp(SwapObject->StartLocation, SwapObject->EndLocation, Progress);
 
 		// Оновлюємо позиції об'єктів
 		this->SetActorLocation(NewPos1);
-		SwapObject->SetActorLocation(NewPos2);
+		/*
+		if(SwapObject)
+		{
+			FVector NewPos2 = FMath::Lerp(SwapObject->StartLocation, SwapObject->EndLocation, Progress);
+			SwapObject->SetActorLocation(NewPos2);
+		}
+		*/
 
 		// Якщо анімація завершена, зупиняємо її
 		if (Progress >= 1.0f)
 		{
-			bIsSwapping = false;
-			SwapObject->bIsSwapping = false;
-
 			// Завершуємо обмін позиціями 
 			UpdateGridPositionAfterSwap(SwapObject);
 		}
+	}
+
+	if (this->GetGemMesh()->IsSimulatingPhysics()) // вектор фізики
+	{
+		this->GetGemMesh()->AddForce(FVector(-5000.0f, 0.0f, 200.0f), NAME_None, true);
+	}
+
+	FVector Location = GetActorLocation();
+
+	if (Location.X > 3000.0f || Location.X < -3000.0f ||
+		Location.Y > 3000.0f || Location.Y < -3000.0f ||
+		Location.Z > 1000.0f || Location.Z < -1000.0f)
+	{
+		Destroy();
 	}
 }
 
 void AGem::UpdateGridPositionAfterSwap(AGem* Object2)
 {
-	// Оновлюємо позиції в гриді
-	int column = this->positionInGrid / 1000;
-	int row = this->positionInGrid % 1000;
+	bIsSwapping = false;
 
-	int column2 = Object2->positionInGrid / 1000;
-	int row2 = Object2->positionInGrid % 1000;
-
-	Grid[column][row]->gem = Object2;
-	Grid[column2][row2]->gem = this;
-
-	int temp = this->positionInGrid;
-	this->positionInGrid = Object2->positionInGrid;
-	Object2->positionInGrid = temp;
-
-	GridObject->CheckMatch();
-}
-
-
-/*
-void AGem::SwapGems(AGem* Object2)
-{
-	FVector StartPos1, StartPos2;
-
-	StartPos1 = this->GetActorLocation();
-	StartPos2 = Object2->GetActorLocation();
-
-	this->SetActorLocation(StartPos2);
-	Object2->SetActorLocation(StartPos1);
-
-
-
-	int column = this->positionInGrid / 1000;
-	int row = this->positionInGrid % 1000;
-
-	int column2 = Object2->positionInGrid / 1000;
-	int row2 = Object2->positionInGrid % 1000;
-
-	Grid[column][row]->gem = Object2;
-	Grid[column2][row2]->gem = this;
-
-	int temp = this->positionInGrid;
-	this->positionInGrid = Object2->positionInGrid;
-	Object2->positionInGrid = temp;
+	this->SetActorLocation(EndLocation);
 	
+	int tempColumn = this->columnInGrid;
+	int tempRow = this->rowInGrid;
+
+	if(SwapObject != nullptr)
+	{
+		SwapObject->bIsSwapping = false;
+
+		SwapObject->SetActorLocation(SwapObject->EndLocation);
+
+		// Оновлюємо позиції в гриді
+		Grid[columnInGrid][rowInGrid]->gem = Object2;
+		Grid[Object2->columnInGrid][Object2->rowInGrid]->gem = this;
+
+		// Оновлюємо знання обєкта про свою позицію в гриді
+		this->columnInGrid = Object2->columnInGrid;
+		this->rowInGrid = Object2->rowInGrid;
+
+		Object2->columnInGrid = tempColumn;
+		Object2->rowInGrid = tempRow;
+	}
+
 	GridObject->CheckMatch();
 }
-*/

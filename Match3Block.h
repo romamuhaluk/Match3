@@ -33,11 +33,14 @@ public:
 	bool bIsActive;
 
 	/** Grid that owns us */
-	UPROPERTY()
-	class AMatch3BlockGrid* OwningGrid;
+	//UPROPERTY()
+	//class AMatch3BlockGrid* OwningGrid;
 
 	UPROPERTY(EditAnywhere)
-	int positionInGrid;
+	int columnInGrid;
+
+	UPROPERTY(EditAnywhere)
+	int rowInGrid;
 
 	/** Pointer to white material used on the focused block */
 	UPROPERTY()

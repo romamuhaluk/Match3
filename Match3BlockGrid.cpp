@@ -8,6 +8,7 @@
 
 TArray<TArray<FGridElement*>> Grid;
 int32 Size;
+
 AMatch3BlockGrid* GridObject;
 
 AMatch3BlockGrid::AMatch3BlockGrid()
@@ -15,8 +16,6 @@ AMatch3BlockGrid::AMatch3BlockGrid()
 	// Create dummy root scene component
 	DummyRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Dummy0"));
 	RootComponent = DummyRoot;
-
-    GridObject = this;
 
 	// Create static mesh component
 	//ScoreText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("ScoreText0"));
@@ -26,6 +25,9 @@ AMatch3BlockGrid::AMatch3BlockGrid()
 	//ScoreText->SetupAttachment(DummyRoot);
 
 	// Set defaults
+    GridObject = this;
+
+    PrimaryActorTick.bCanEverTick = true;
 	Size = 9;
 	BlockSpacing = 300.f;
 }
@@ -41,10 +43,53 @@ void AMatch3BlockGrid::BeginPlay()
 
 }
 
+void AMatch3BlockGrid::Tick(float DeltaTime)
+{
+    //AMatch3BlockGrid::CheckMatch();
+
+    //CheckEmptyCell();
+
+}
+
+
+void AMatch3BlockGrid::CheckEmptyCell()
+{
+    for (int column = 0; column < Size; column++)  //column
+    {
+        for (int row = 0; row < Size; row++)
+        {
+            if (Grid[column][row]->gem == nullptr && column != Size - 1)     // якщо гем пропущений 
+            {
+                for (int temprow = row + 1; temprow < Size; temprow++)       // шукаємо наступний існуючий гем
+                {
+                    if (Grid[column][temprow]->gem == nullptr)               
+                    {
+                        continue;
+                    }
+                    // розміщуємо існуючий гем на місці пропущеного в памяті grid
+                    Grid[column][row]->gem = Grid[column][temprow]->gem;
+                    Grid[column][temprow]->gem = nullptr;
+
+                    // Оновлюємо знання обєкта про свою майбутню позицію в grid
+                    Grid[column][row]->gem->columnInGrid = column;
+                    Grid[column][row]->gem->rowInGrid = row;
+
+                    //переміщуюмо знайдений гем на місце пропущеного
+                    Grid[column][row]->gem->SwapOnPoint(Grid[column][row]->point);
+                }
+            }
+            else
+            {
+
+            }
+        }
+    }
+}
+
 void AMatch3BlockGrid::CheckMatch()
 {
 
-    int consecutiveMatches(0);
+    int consecutiveMatches(1);
 
     for (int column = 0; column < Size; column++)  //column
     {  
@@ -52,23 +97,32 @@ void AMatch3BlockGrid::CheckMatch()
 
         for (int row = 0; row < Size; row++)
         {
-            if (row != Size - 1 &&
-                Grid[column][row]->gem->GetGemMesh()->GetStaticMesh() == Grid[column][row + 1]->gem->GetGemMesh()->GetStaticMesh()
-                && consecutiveMatches != 4 ) 
-            { 
-                consecutiveMatches++; 
-            }
-            
-            else 
+            if (Grid[column][row]->gem != nullptr &&
+                row != Size - 1 &&
+                Grid[column][row + 1]->gem != nullptr &&
+                Grid[column][row]->gem->GetGemMesh()->GetStaticMesh() == Grid[column][row + 1]->gem->GetGemMesh()->GetStaticMesh() &&
+                consecutiveMatches != 4 )
             {
-                if (consecutiveMatches >= 2) 
+                consecutiveMatches++;
+            }
+            else
+            {
+                if (consecutiveMatches >= 2)
                 {
                     for (int tempRow = row; consecutiveMatches >= 0; consecutiveMatches--, tempRow--)
                     {
-                        Grid[column][tempRow]->gem->SetActorHiddenInGame(true);
+                        //Grid[column][tempRow]->gem->SetActorHiddenInGame(true);
+                        Grid[column][tempRow]->gem->GetGemMesh()->SetSimulatePhysics(true);
+                        Grid[column][tempRow]->gem->GetGemMesh()->SetEnableGravity(true);
+
+                        //заборона викликання кліку у падаючого гема
+                        Grid[column][tempRow]->gem->GetGemMesh()->OnClicked.Clear(); 
+                        Grid[column][tempRow]->gem->GetGemMesh()->OnInputTouchBegin.Clear();
+
+                        Grid[column][tempRow]->gem = nullptr;
                     }
                 }
-                else{ consecutiveMatches = 0; }
+                else { consecutiveMatches = 0; }
             }
         }
     }
@@ -81,20 +135,25 @@ void AMatch3BlockGrid::CheckMatch()
 
         for (int column = 0; column < Size; column++)
         {
-            if (column != Size - 1 &&
-                Grid[column][row]->gem->GetGemMesh()->GetStaticMesh() == Grid[column + 1][row]->gem->GetGemMesh()->GetStaticMesh()
-                && consecutiveMatches != 4)
+            if (Grid[column][row]->gem != nullptr &&
+                column != Size - 1 &&
+                Grid[column + 1][row]->gem != nullptr &&
+                Grid[column][row]->gem->GetGemMesh()->GetStaticMesh() == Grid[column + 1][row]->gem->GetGemMesh()->GetStaticMesh() &&
+                consecutiveMatches != 4)
             {
                 consecutiveMatches++;
             }
-
             else
             {
                 if (consecutiveMatches >= 2)
                 {
                     for (int tempColumn = column; consecutiveMatches >= 0; consecutiveMatches--, tempColumn--)
                     {
-                        Grid[tempColumn][row]->gem->SetActorHiddenInGame(true);
+                        //Grid[tempColumn][row]->gem->SetActorHiddenInGame(true);
+                        Grid[tempColumn][row]->gem->GetGemMesh()->SetSimulatePhysics(true);
+                        Grid[tempColumn][row]->gem->GetGemMesh()->SetEnableGravity(true);
+
+                        Grid[tempColumn][row]->gem = nullptr;
                     }
                 }
                 else { consecutiveMatches = 0; }
@@ -131,13 +190,16 @@ void AMatch3BlockGrid::CreateGrid()
 			{
 				Grid[BlockIndex][BlockIndex2] = new FGridElement();  // Виділення пам'яті для кожного елемента
 
-				NewBlock->positionInGrid = BlockIndex * 1000 + BlockIndex2;
-				NewGem->positionInGrid = BlockIndex * 1000 + BlockIndex2;
+                NewBlock->columnInGrid = BlockIndex;
+                NewBlock->rowInGrid = BlockIndex2;
+
+                NewGem->columnInGrid = BlockIndex;
+                NewGem->rowInGrid = BlockIndex2;
 
 				// Додаємо в відповідний рядок і стовпчик
 				Grid[BlockIndex][BlockIndex2]->block = NewBlock;   // де BlockIndex — це стовпець, а BlockIndex2 — це рядок.
 				Grid[BlockIndex][BlockIndex2]->gem = NewGem;
-				
+                Grid[BlockIndex][BlockIndex2]->point = NewGem->GetActorLocation();//(BlockLocation + FVector(0, 0, 40.f));
 			}
 		}
 	}

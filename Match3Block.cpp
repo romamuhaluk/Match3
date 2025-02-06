@@ -67,8 +67,8 @@ void AMatch3Block::HandleClicked()
 {
 	if (ActiveBlock != nullptr && this != ActiveBlock) {
 
-		int column = ActiveBlock->positionInGrid / 1000;
-		int row = ActiveBlock->positionInGrid % 1000;
+		int column = ActiveBlock->columnInGrid;
+		int row = ActiveBlock->rowInGrid;
 
 		int directions[4][2] = {
 			{0, 1},   // вверх
@@ -96,13 +96,31 @@ void AMatch3Block::HandleClicked()
 			int newRow = row + directions[i][1];
 
 
-			if (this == Grid[newColumn][newRow]->block)
-			{
-				//ActiveBlock->positionInGrid = newColumn * 1000 + newRow;
-				//positionInGrid = column * 1000 + row;
+			if (this == Grid[newColumn][newRow]->block)        // якщо новий блок знаходиться біля активного відбувається swap
+			{	
+				if (Grid[newColumn][newRow]->gem == nullptr)                          // якщо новий блок без гема, міняємо активний гем з точкою на місці нового блоку
+				{
+					if (Grid[column][row]->gem != nullptr)							  // якщо активний блок з гемом свапаємо його з точкою на місці пустого гему
+					{
+						// Оновлюємо знання обєкта про свою майбутню позицію в grid
+						Grid[column][row]->gem->columnInGrid = newColumn;
+						Grid[column][row]->gem->rowInGrid = newRow;
 
-				
-				Grid[column][row]->gem->SwapGems(Grid[newColumn][newRow]->gem);
+						// Оновлюємо позицію в гриді
+						Grid[newColumn][newRow]->gem = Grid[column][row]->gem;
+						Grid[column][row]->gem = nullptr;
+
+						Grid[newColumn][newRow]->gem->SwapOnPoint(Grid[newColumn][newRow]->point);
+					}
+				}
+				else
+				{
+					if (Grid[column][row]->gem != nullptr)           // якщо є два геми свапаємо їх
+					{
+						Grid[column][row]->gem->SwapGems(Grid[newColumn][newRow]->gem);
+					}
+				}				
+				//GridObject->CheckMatch();
 				break;  // Якщо вже знайдений збіг, більше не потрібно перевіряти інші напрямки
 			}
 		}

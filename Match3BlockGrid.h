@@ -25,6 +25,10 @@ struct FGridElement  // Unreal Engine рекомендує префікс "F" для структур
 
 	UPROPERTY()
 	AGem* gem;
+
+	UPROPERTY()
+	FVector point;
+
 };
 
 /** Class used to spawn blocks and manage score */
@@ -42,6 +46,12 @@ class AMatch3BlockGrid : public AActor
 	//UPROPERTY(Category = Grid, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	//class UTextRenderComponent* ScoreText;
 
+protected:
+
+	// Begin AActor interface
+	virtual void BeginPlay() override;
+	// End AActor interface
+
 public:
 	AMatch3BlockGrid();
 
@@ -53,17 +63,13 @@ public:
 	UPROPERTY(Category = Grid, EditAnywhere, BlueprintReadOnly)
 	float BlockSpacing;
 
-protected:
-	
-	// Begin AActor interface
-	virtual void BeginPlay() override;
-	// End AActor interface
-	
-
-public:
 	void CreateGrid();
 
 	void CheckMatch();
+
+	void CheckEmptyCell();
+
+	void Tick(float DeltaTime);
 
 	/** Returns DummyRoot subobject **/
 	FORCEINLINE class USceneComponent* GetDummyRoot() const { return DummyRoot; }
