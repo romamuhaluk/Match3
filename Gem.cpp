@@ -58,6 +58,7 @@ AGem::AGem()
 
 	PrimaryActorTick.bCanEverTick = true;  
 	ElapsedTime = 0.1f;     // Встановлюємо змінну для анімації
+	straightAnimation = false;
 }
 
 // Called when the game starts or when spawned
@@ -138,8 +139,10 @@ void AGem::SwapOnPoint(FVector point)  // свап з пустою коміркою
 {
 	// Зберігаємо початкову позицію
 	StartLocation = this->GetActorLocation();
+	StartAngle = GetActorRotation();
 	// Визначаємо кінцеву позицію
 	EndLocation = point;
+	EndAngle = FRotator(-90.0f, 0, 0);
 
 	SwapObject = nullptr;
 
@@ -157,13 +160,20 @@ void AGem::SwapGems(AGem* Object2)
 		FVector StartPos1 = this->GetActorLocation();
 		FVector StartPos2 = Object2->GetActorLocation();
 
+		FRotator StartAngle1 = this->GetActorRotation();
+		FRotator StartAngle2 = Object2->GetActorRotation();
+
 		// Зберігаємо початкові позиції
 		this->StartLocation = StartPos1;
 		Object2->StartLocation = StartPos2;
-
+		this->StartAngle = StartAngle1;
+		Object2->StartAngle = StartAngle2;
+		
 		// Визначаємо кінцеві позиції
 		this->EndLocation = StartPos2;
 		Object2->EndLocation = StartPos1;
+		this->EndAngle = StartAngle2;
+		Object2->EndAngle = StartAngle1;
 
 		// Зберігаємо ссилки на об'єкти, щоб вони змінювали позиції в процесі
 		this->SwapObject = Object2;
@@ -191,29 +201,34 @@ void AGem::Tick(float DeltaTime)
 	// Якщо об'єкти в процесі обміну, оновлюємо їх позиції
 	if (bIsSwapping)
 	{
-		float SwapDuration(0.4); //0.6
+		float SwapDuration = (straightAnimation ? 1,2 : 0.4); //0.4 - для свапу 2 - для заповнення пустих клатинок з гори
 
 		ElapsedTime += DeltaTime;
 
 		if (ElapsedTime < 0.15 * SwapDuration && ElapsedTime < 0.25) 
 		{
-			SwapDuration = 1.5;
+			SwapDuration = (straightAnimation ? 2 : 1.5);  //1.5 - для свапу
 		}
 
 		float Progress = FMath::Clamp(ElapsedTime / SwapDuration, 0.0f, 1.0f);
 
-		FVector RoundingVector(0, 250.0f, 350.0f);
+		FVector RoundingVector = (straightAnimation? FVector(0, 0, 0) : FVector(0, 250.0f, 350.0f) * Progress);
+		FRotator AroundAxis = (straightAnimation ? FRotator(0, 0, 0) : FRotator(360, 0.0f, 0.0f) * Progress);
+
 
 		// Обчислюємо нові позиції для кожного об'єкта
-		FVector NewPos1 = FMath::Lerp(StartLocation + RoundingVector * Progress, EndLocation, Progress);
+		FVector NewPos1 = FMath::Lerp(StartLocation + RoundingVector, EndLocation, Progress);
+		FRotator NewAngle = FMath::Lerp(StartAngle + AroundAxis, EndAngle, Progress);
 
 		// Оновлюємо позиції об'єктів
 		this->SetActorLocation(NewPos1);
+		this->SetActorRotation(NewAngle);
 		
 		if(SwapObject)
 		{
-			FVector NewPos2 = FMath::Lerp(SwapObject->StartLocation - RoundingVector * Progress, SwapObject->EndLocation, Progress);
+			FVector NewPos2 = FMath::Lerp(SwapObject->StartLocation - RoundingVector, SwapObject->EndLocation, Progress);
 			SwapObject->SetActorLocation(NewPos2);
+			SwapObject->SetActorRotation(NewAngle);
 		}
 		
 
@@ -243,6 +258,7 @@ void AGem::Tick(float DeltaTime)
 void AGem::UpdateGridPositionAfterSwap(AGem* Object2)
 {
 	this->SetActorLocation(EndLocation);
+	this->SetActorRotation(EndAngle);
 
 	this->GetGemMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	Grid[columnInGrid][rowInGrid]->block->GetBlockMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -253,6 +269,7 @@ void AGem::UpdateGridPositionAfterSwap(AGem* Object2)
 		int tempRow = this->rowInGrid;
 
 		SwapObject->SetActorLocation(SwapObject->EndLocation);
+		SwapObject->SetActorRotation(SwapObject->EndAngle);
 
 		Object2->GetGemMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		Grid[Object2->columnInGrid][Object2->rowInGrid]->block->GetBlockMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -270,6 +287,7 @@ void AGem::UpdateGridPositionAfterSwap(AGem* Object2)
 
 		//SwapObject->bIsSwapping = false;
 	}
+	straightAnimation = false;
 
 	bIsSwapping = false;
 

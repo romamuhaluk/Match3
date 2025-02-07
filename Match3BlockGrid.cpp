@@ -41,7 +41,7 @@ void AMatch3BlockGrid::BeginPlay()
 
     AMatch3BlockGrid::CheckMatch();
 
-    CheckEmptyCell();
+    AMatch3BlockGrid::CheckEmptyCell();
 
 }
 
@@ -76,11 +76,36 @@ void AMatch3BlockGrid::CheckEmptyCell()
                     Grid[column][row]->gem->columnInGrid = column;
                     Grid[column][row]->gem->rowInGrid = row;
 
+                    Grid[column][row]->gem->straightAnimation = true;
+
                     //переміщуюмо знайдений гем на місце пропущеного
                     Grid[column][row]->gem->SwapOnPoint(Grid[column][row]->point);
 
                     break;
                 }
+            }
+        }
+    }
+
+    for (int column = 0; column < Size; column++)
+    {
+        if(Grid[column][Size - 1]->gem == nullptr)
+        {
+            const FVector GemOverGrid = Grid[column][Size - 1]->point + FVector(0.f, Size, 0.f);
+
+            AGem* NewGem = GetWorld()->SpawnActor<AGem>(GemOverGrid, FRotator(0, 0, 0));
+
+            if (NewGem)
+            {
+                NewGem->columnInGrid = column;
+                NewGem->rowInGrid = Size - 1;
+                NewGem->straightAnimation = true;
+
+                // Додаємо в відповідний рядок і стовпчик
+                Grid[column][Size - 1]->gem = NewGem;
+
+                //переміщуюмо знайдений гем на місце пропущеного у верхівці сітки
+                Grid[column][Size - 1]->gem->SwapOnPoint(Grid[column][Size - 1]->point);
             }
         }
     }
@@ -121,6 +146,8 @@ void AMatch3BlockGrid::CheckMatch()
 
                         Grid[column][tempRow]->gem->GetGemMesh()->AddForce(FVector(10000.0f, 0.0f, 5000.0f), NAME_None, true);
 
+                        Grid[column][tempRow]->gem->SetLifeSpan(5);
+
                         Grid[column][tempRow]->gem = nullptr;
                     }
                 }
@@ -157,6 +184,8 @@ void AMatch3BlockGrid::CheckMatch()
 
                         Grid[tempColumn][row]->gem->GetGemMesh()->AddForce(FVector(50000.0f, 0.0f, 10000.0f), NAME_None, true);
 
+                        Grid[tempColumn][row]->gem->SetLifeSpan(5);
+
                         Grid[tempColumn][row]->gem = nullptr;
                     }
                 }
@@ -166,21 +195,23 @@ void AMatch3BlockGrid::CheckMatch()
     }
 }
 
-// де BlockIndex — це стовпець (column), а BlockIndex2 — це рядок (row).
+// де column — це стовпець, а row — це рядок (row).
 void AMatch3BlockGrid::CreateGrid()
 {
-	Grid.SetNum(Size); //SetNum для ініціалізації розміру масиву
+	Grid.SetNum(Size); //SetNum для ініціалізації стовбців
 
 	// Loop to spawn each block
-	for (int32 BlockIndex = 0; BlockIndex < Size; BlockIndex++)
+	for (int32 column = 0; column < Size; column++)
 	{
-		Grid[BlockIndex].SetNum(Size);   // SetNum для кожного підмасиву
+		Grid[column].SetNum(Size);   // SetNum для кожного рядка
 
-		for (int32 BlockIndex2 = 0; BlockIndex2 < Size; BlockIndex2++)
+        //Grid[column][Size] = new FGridElement();  // в кожній колонці додатковий рядок для створення падаючих гемів
+
+		for (int32 row = 0; row < Size; row++)
 		{
 
-			const float XOffset = (BlockIndex2 % Size) * BlockSpacing; // Divide by dimension
-			const float YOffset = (BlockIndex % Size) * BlockSpacing;
+			const float XOffset = (row % Size) * BlockSpacing; // Divide by dimension
+			const float YOffset = (column % Size) * BlockSpacing;
 
 			// Make position vector, offset from Grid location
 			const FVector BlockLocation = FVector(XOffset, YOffset, 0.f) + GetActorLocation();
@@ -192,22 +223,21 @@ void AMatch3BlockGrid::CreateGrid()
 
 			if (NewBlock && NewGem)
 			{
-				Grid[BlockIndex][BlockIndex2] = new FGridElement();  // Виділення пам'яті для кожного елемента
+				Grid[column][row] = new FGridElement();  // Виділення пам'яті для кожного елемента
 
-                NewBlock->columnInGrid = BlockIndex;
-                NewBlock->rowInGrid = BlockIndex2;
+                NewBlock->columnInGrid = column;
+                NewBlock->rowInGrid = row;
 
-                NewGem->columnInGrid = BlockIndex;
-                NewGem->rowInGrid = BlockIndex2;
+                NewGem->columnInGrid = column;
+                NewGem->rowInGrid = row;
 
 				// Додаємо в відповідний рядок і стовпчик
-				Grid[BlockIndex][BlockIndex2]->block = NewBlock;   // де BlockIndex — це стовпець, а BlockIndex2 — це рядок.
-				Grid[BlockIndex][BlockIndex2]->gem = NewGem;
-                Grid[BlockIndex][BlockIndex2]->point = NewGem->GetActorLocation();//(BlockLocation + FVector(0, 0, 40.f));
+				Grid[column][row]->block = NewBlock;   // де column — це стовпець, а row — це рядок.
+				Grid[column][row]->gem = NewGem;
+                Grid[column][row]->point = NewGem->GetActorLocation();//(BlockLocation + FVector(0, 0, 40.f));
 			}
 		}
 	}
 }
-
 
 #undef LOCTEXT_NAMESPACE

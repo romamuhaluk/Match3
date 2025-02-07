@@ -61,7 +61,10 @@ public:
 
 	FVector StartLocation;
 	FVector EndLocation;
+	FRotator StartAngle;
+	FRotator EndAngle;
 	bool bIsSwapping;
+	bool straightAnimation;
 	AGem* SwapObject;
 	float ElapsedTime;
 
