@@ -41,6 +41,8 @@ void AMatch3BlockGrid::BeginPlay()
 
     AMatch3BlockGrid::CheckMatch();
 
+    CheckEmptyCell();
+
 }
 
 void AMatch3BlockGrid::Tick(float DeltaTime)
@@ -58,7 +60,7 @@ void AMatch3BlockGrid::CheckEmptyCell()
     {
         for (int row = 0; row < Size; row++)
         {
-            if (Grid[column][row]->gem == nullptr && column != Size - 1)     // якщо гем пропущений 
+            if (Grid[column][row]->gem == nullptr)     // якщо гем пропущений 
             {
                 for (int temprow = row + 1; temprow < Size; temprow++)       // шукаємо наступний існуючий гем
                 {
@@ -76,11 +78,9 @@ void AMatch3BlockGrid::CheckEmptyCell()
 
                     //переміщуюмо знайдений гем на місце пропущеного
                     Grid[column][row]->gem->SwapOnPoint(Grid[column][row]->point);
-                }
-            }
-            else
-            {
 
+                    break;
+                }
             }
         }
     }
@@ -208,7 +208,6 @@ void AMatch3BlockGrid::CreateGrid()
 		}
 	}
 }
-
 
 
 #undef LOCTEXT_NAMESPACE

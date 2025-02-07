@@ -145,7 +145,7 @@ void AGem::SwapOnPoint(FVector point)  // свап з пустою коміркою
 
 	this->ElapsedTime = 0.0f;
 
-	this->GetGemMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	this->GetGemMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 
 	// Починаємо анімацію (плавний рух)
 	bIsSwapping = true;
@@ -170,10 +170,10 @@ void AGem::SwapGems(AGem* Object2)
 		Object2->SwapObject = this;
 
 		//Вимикаємо взаємодію з обєктами поки вони рухаються
-		this->GetGemMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		Grid[columnInGrid][rowInGrid]->block->GetBlockMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		Object2->GetGemMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		Grid[Object2->columnInGrid][Object2->rowInGrid]->block->GetBlockMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		this->GetGemMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		Grid[columnInGrid][rowInGrid]->block->GetBlockMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		Object2->GetGemMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		Grid[Object2->columnInGrid][Object2->rowInGrid]->block->GetBlockMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 
 		this->ElapsedTime = 0.0f;
 		//Object2->ElapsedTime = 0.0f;
@@ -242,24 +242,20 @@ void AGem::Tick(float DeltaTime)
 
 void AGem::UpdateGridPositionAfterSwap(AGem* Object2)
 {
-	bIsSwapping = false;
-
 	this->SetActorLocation(EndLocation);
 
-	this->GetGemMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	Grid[columnInGrid][rowInGrid]->block->GetBlockMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	this->GetGemMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	Grid[columnInGrid][rowInGrid]->block->GetBlockMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 	if(SwapObject != nullptr)
 	{
 		int tempColumn = this->columnInGrid;
 		int tempRow = this->rowInGrid;
 
-		SwapObject->bIsSwapping = false;
-
 		SwapObject->SetActorLocation(SwapObject->EndLocation);
 
-		Object2->GetGemMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		Grid[Object2->columnInGrid][Object2->rowInGrid]->block->GetBlockMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		Object2->GetGemMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		Grid[Object2->columnInGrid][Object2->rowInGrid]->block->GetBlockMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 		// Оновлюємо позиції в гриді
 		Grid[columnInGrid][rowInGrid]->gem = Object2;
@@ -271,7 +267,12 @@ void AGem::UpdateGridPositionAfterSwap(AGem* Object2)
 
 		Object2->columnInGrid = tempColumn;
 		Object2->rowInGrid = tempRow;
+
+		//SwapObject->bIsSwapping = false;
 	}
 
+	bIsSwapping = false;
+
 	GridObject->CheckMatch();
+	GridObject->CheckEmptyCell();
 }
