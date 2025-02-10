@@ -14,22 +14,21 @@ class MATCH3_API AGem : public AActor
 {
 	GENERATED_BODY()
 	
+protected:
+
 	UPROPERTY(Category = Block, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class USceneComponent* GemRoot;
 
 	UPROPERTY(Category = Block, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* MyComponentGems;
 
-public:	
-	// Sets default values for this actor's properties
-	AGem();
-
-protected:
 	// Called when the game starts or when spawned
 	//virtual void BeginPlay() override;
 
-	UFUNCTION()
-	int randomNum(int maxGems);
+public:
+
+	//UFUNCTION()
+	//int randomNum(int max);
 
 	UFUNCTION()
 	void randomGem(UStaticMeshComponent* Component);
@@ -40,7 +39,8 @@ protected:
 	UFUNCTION()
 	void GemClicked(UPrimitiveComponent* ClickedComp, FKey ButtonClicked);
 
-public:	
+	AGem();
+
 	UPROPERTY(EditAnywhere)
 	int columnInGrid;
 
@@ -75,3 +75,5 @@ public:
 
 	FORCEINLINE class USceneComponent* GetGemRoot() const { return GemRoot; }
 };
+
+int randomNum(int max);

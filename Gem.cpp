@@ -101,10 +101,10 @@ void AGem::randomGem(UStaticMeshComponent* Component) {
 	}
 }
 
-int AGem::randomNum(int maxGems) {
+int randomNum(int max) {
 	std::random_device rd;
 	std::mt19937 mersenne(rd());
-	std::uniform_int_distribution<> dist(1, maxGems);
+	std::uniform_int_distribution<> dist(1, max);
 	return dist(mersenne);
 }
 
