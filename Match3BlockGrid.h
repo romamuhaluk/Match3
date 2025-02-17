@@ -71,6 +71,9 @@ public:
 
 	void Tick(float DeltaTime);
 
+	bool wasMatchAfterSwap;
+	bool trySwapToMatch;
+
 	/** Returns DummyRoot subobject **/
 	FORCEINLINE class USceneComponent* GetDummyRoot() const { return DummyRoot; }
 

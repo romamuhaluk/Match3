@@ -15,5 +15,3 @@ class AMatch3PlayerController : public APlayerController
 public:
 	AMatch3PlayerController();
 };
-
-

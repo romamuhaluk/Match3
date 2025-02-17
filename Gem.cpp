@@ -12,28 +12,28 @@
 struct FGemConstructorStatics
 {
 	ConstructorHelpers::FObjectFinderOptional<UStaticMesh> AmberMesh;
-	ConstructorHelpers::FObjectFinderOptional<UMaterial> OrangeGem;
+	//ConstructorHelpers::FObjectFinderOptional<UMaterial> OrangeGem;
 
 	ConstructorHelpers::FObjectFinderOptional<UStaticMesh> AmethystMesh;
-	ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> PurpleGem;
+	//ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> PurpleGem;
 
 	ConstructorHelpers::FObjectFinderOptional<UStaticMesh> GarnetMesh;
-	ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> RedGem;
+	//ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> RedGem;
 
 	ConstructorHelpers::FObjectFinderOptional<UStaticMesh> EmeraldMesh;
-	ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> GreenGem;
+	//ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> GreenGem;
 	FGemConstructorStatics()
 		: AmberMesh(TEXT("/Game/Assets/Gems/Amber.Amber"))
-		, OrangeGem(TEXT("/Game/Assets/Gems/SolidOrangeGem.SolidOrangeGem"))
+		//, OrangeGem(TEXT("/Game/Assets/Gems/SolidOrangeGem_Inst.SolidOrangeGem_Inst"))
 
 		, AmethystMesh(TEXT("/Game/Assets/Gems/Amethyst.Amethyst"))
-		, PurpleGem(TEXT("/Game/Assets/Gems/TransparentPurpleGem.TransparentPurpleGem"))
+		//, PurpleGem(TEXT("/Game/Assets/Gems/TransparentPurpleGem_Inst.TransparentPurpleGem_Inst"))
 
 		, GarnetMesh(TEXT("/Game/Assets/Gems/Garnet.Garnet"))
-		, RedGem(TEXT("/Game/Assets/Gems/SolidRedGem.SolidRedGem"))
+		//, RedGem(TEXT("/Game/Assets/Gems/SolidRedGem_Inst.SolidRedGem_Inst"))
 
 		, EmeraldMesh(TEXT("/Game/Assets/Gems/Emerald.Emerald"))
-		, GreenGem(TEXT("/Game/Assets/Gems/TransparentGreenGem.TransparentGreenGem"))
+		//, GreenGem(TEXT("/Game/Assets/Gems/TransparentGreenGem_Inst.TransparentGreenGem_Inst"))
 	{
 	}
 };
@@ -55,6 +55,8 @@ AGem::AGem()
 	MyComponentGems->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f));
 	MyComponentGems->OnClicked.AddDynamic(this, &AGem::GemClicked);         //Реєструє динамічний обробник події OnClicked
 	MyComponentGems->OnInputTouchBegin.AddDynamic(this, &AGem::OnFingerPressedGem);  //Реєструє обробник події OnInputTouchBegin
+	MyComponentGems->OnBeginCursorOver.AddDynamic(this, &AGem::OnHovered);
+
 
 	PrimaryActorTick.bCanEverTick = true;  
 	ElapsedTime = 0.1f;     // Встановлюємо змінну для анімації
@@ -75,28 +77,28 @@ void AGem::randomGem(UStaticMeshComponent* Component) {
 	{
 	case 1:
 		Component->SetStaticMesh(ConstructorGemStatics.AmberMesh.Get());
-		Component->SetMaterial(0, ConstructorGemStatics.OrangeGem.Get());
+		//Component->SetMaterial(0, ConstructorGemStatics.OrangeGem.Get());
 		break;
 
 	case 2:
 		Component->SetStaticMesh(ConstructorGemStatics.AmethystMesh.Get());
-		Component->SetMaterial(0, ConstructorGemStatics.PurpleGem.Get());
+		//Component->SetMaterial(0, ConstructorGemStatics.PurpleGem.Get());
 		break;
 
 	case 3:
 		Component->SetStaticMesh(ConstructorGemStatics.GarnetMesh.Get());
-		Component->SetMaterial(0, ConstructorGemStatics.RedGem.Get());
+		//Component->SetMaterial(0, ConstructorGemStatics.RedGem.Get());
 		break;
 
 	case 4:
 		Component->SetStaticMesh(ConstructorGemStatics.EmeraldMesh.Get());
-		Component->SetMaterial(0, ConstructorGemStatics.GreenGem.Get());
+		//Component->SetMaterial(0, ConstructorGemStatics.GreenGem.Get());
 		break;
 
 	default:
 		// Якщо рандомне число виходить за межі, можна встановити стандартний меш або нічого не робити
 		Component->SetStaticMesh(nullptr);
-		Component->SetMaterial(0, nullptr);
+		//Component->SetMaterial(0, nullptr);
 		break;
 	}
 }
@@ -118,12 +120,11 @@ void AGem::OnFingerPressedGem(ETouchIndex::Type FingerIndex, UPrimitiveComponent
 	HandleClicked();
 }
 
-void AGem::Highlight(bool bOn)
+void AGem::OnHovered(UPrimitiveComponent* HoveredComponent)
 {
-
-	if (Grid[columnInGrid][rowInGrid]->block != nullptr)
+	if (Grid.IsValidIndex(columnInGrid) && Grid.IsValidIndex(rowInGrid) && Grid[columnInGrid][rowInGrid]->block != nullptr)
 	{
-		Grid[columnInGrid][rowInGrid]->block->Highlight(bOn);
+		Grid[columnInGrid][rowInGrid]->block->Highlight(true);
 	}
 }
 
@@ -201,24 +202,29 @@ void AGem::Tick(float DeltaTime)
 	// Якщо об'єкти в процесі обміну, оновлюємо їх позиції
 	if (bIsSwapping)
 	{
-		float SwapDuration = (straightAnimation ? 1,2 : 0.4); //0.4 - для свапу 2 - для заповнення пустих клатинок з гори
+		float SwapDuration = (straightAnimation ? 1.2 : 0.4); //0.4 - для свапу 2 - для заповнення пустих клатинок з гори
 
 		ElapsedTime += DeltaTime;
 
 		if (ElapsedTime < 0.15 * SwapDuration && ElapsedTime < 0.25) 
 		{
-			SwapDuration = (straightAnimation ? 2 : 1.5);  //1.5 - для свапу
+			SwapDuration = (straightAnimation ? 1.2 : 1.5);  //1.5 - для свапу
 		}
 
 		float Progress = FMath::Clamp(ElapsedTime / SwapDuration, 0.0f, 1.0f);
 
-		FVector RoundingVector = (straightAnimation? FVector(0, 0, 0) : FVector(0, 250.0f, 350.0f) * Progress);
+		FVector RoundingVector = (straightAnimation ? FVector(0, 0, 0) : FVector( 0, 400.0f, 0) * Progress);
 		FRotator AroundAxis = (straightAnimation ? FRotator(0, 0, 0) : FRotator(360, 0.0f, 0.0f) * Progress);
 
 
 		// Обчислюємо нові позиції для кожного об'єкта
-		FVector NewPos1 = FMath::Lerp(StartLocation + RoundingVector, EndLocation, Progress);
+		FVector NewPos1 = FMath::Lerp(StartLocation + RoundingVector + (straightAnimation ? FVector(0, 0, 0) : FVector(0, 0, 200.0f)), EndLocation, Progress);
 		FRotator NewAngle = FMath::Lerp(StartAngle + AroundAxis, EndAngle, Progress);
+
+		if (straightAnimation && (fabs(StartLocation.X) - fabs(EndLocation.X)) < FVector(1000, 0, 0).X)
+		{
+			ElapsedTime += 0.05;
+		}
 
 		// Оновлюємо позиції об'єктів
 		this->SetActorLocation(NewPos1);
@@ -226,11 +232,10 @@ void AGem::Tick(float DeltaTime)
 		
 		if(SwapObject)
 		{
-			FVector NewPos2 = FMath::Lerp(SwapObject->StartLocation - RoundingVector, SwapObject->EndLocation, Progress);
+			FVector NewPos2 = FMath::Lerp(SwapObject->StartLocation - RoundingVector + FVector(0, 0, 200.0f), SwapObject->EndLocation, Progress);
 			SwapObject->SetActorLocation(NewPos2);
 			SwapObject->SetActorRotation(NewAngle);
 		}
-		
 
 		// Якщо анімація завершена, зупиняємо її
 		if (Progress >= 1.0f)
@@ -243,11 +248,12 @@ void AGem::Tick(float DeltaTime)
 	if (this->GetGemMesh()->IsSimulatingPhysics()) // вектор фізики
 	{
 		this->GetGemMesh()->AddForce(FVector(-13000.0f, 0.0f, 200.0f), NAME_None, true);
+		//GetGemMesh()->SetPhysicsLinearVelocity(FVector(-2000, 0, 40)); // Постійна швидкість вниз
 	}
 
 	FVector Location = GetActorLocation();
 
-	if (Location.X > 3000.0f || Location.X < -3000.0f ||
+	if (Location.X > 6000.0f || Location.X < -3000.0f ||
 		Location.Y > 3000.0f || Location.Y < -3000.0f ||
 		Location.Z > 1000.0f || Location.Z < -1000.0f)
 	{
@@ -293,4 +299,14 @@ void AGem::UpdateGridPositionAfterSwap(AGem* Object2)
 
 	GridObject->CheckMatch();
 	GridObject->CheckEmptyCell();
+
+	if (GridObject->trySwapToMatch == true)  //swap gem back
+	{
+		GridObject->trySwapToMatch = false;
+		if (!GridObject->wasMatchAfterSwap && Object2 != nullptr)
+		{
+			Grid[columnInGrid][rowInGrid]->gem->SwapGems(Grid[Object2->columnInGrid][Object2->rowInGrid]->gem);
+		}
+	}
+
 }

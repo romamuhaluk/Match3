@@ -35,7 +35,7 @@ void AUIFallingGridGem::Tick(float DeltaTime)
 
 void AUIFallingGridGem::CreateGrid()
 {
-	int NumburGem = 150;
+	int NumburGem = 200;
 	FallingGemGrid.SetNum(NumburGem); //SetNum для ініціалізації стовбців
 
 	// Loop to spawn each block
@@ -69,28 +69,52 @@ AFallingGem::AFallingGem()
 	fallingForce = -10.0f * randomNum(50);
 }
 
+void AFallingGem::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// Спочатку дуже швидке падіння
+    GetGemMesh()->SetPhysicsLinearVelocity(FVector(0, 0, -1000000.0f));
+
+    // Через 0.1 сек. переходимо на стандартну швидкість `fallingForce`
+    FTimerHandle TimerHandle;
+    GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AFallingGem::StopFallingFast, 0.1f, false);
+}
+
+void AFallingGem::StopFallingFast()
+{
+	bFastFalling = false; // Вимикаємо швидке падіння
+	GetGemMesh()->SetPhysicsLinearVelocity(FVector(0, 0, fallingForce)); // Повертаємо звичайну швидкість
+}
+
 void AFallingGem::Tick(float DeltaTime)
 {
-	//GetGemMesh()->AddForce(FVector(fallingForce, 0, 0), NAME_None, true);
+	if (bFastFalling)
+	{
+		// Якщо кристал ще у швидкому падінні - не змінюємо швидкість
+		return;
+	}
+
+	// Після швидкого падіння - звичайна швидкість падіння
 
 	GetGemMesh()->SetPhysicsLinearVelocity(FVector(0, 0, fallingForce)); // Постійна швидкість вниз
 
+	// Обмежуємо кутову швидкість, щоб вона не перевищувала швидкість падіння
+	FVector AngularVelocity = GetGemMesh()->GetPhysicsAngularVelocityInDegrees();
+	AngularVelocity = AngularVelocity.GetClampedToMaxSize(FMath::Abs(fallingForce));
+	GetGemMesh()->SetPhysicsAngularVelocityInDegrees(AngularVelocity);
+
 	FVector Location = GetActorLocation();
 
-	if (Location.X > 5000.0f || Location.X < -5000.0f ||
-		Location.Y > 5000.0f || Location.Y < -5000.0f ||
-		Location.Z > 2500.0f || Location.Z < -1500.0f)
+	if (Location.X > 3000.0f || Location.X < -3000.0f ||
+		Location.Y > 3000.0f || Location.Y < -3000.0f ||
+		Location.Z > 3000.0f || Location.Z < -1500.0f)
 	{
 		int XOffset = randomNum(2000);
 		int YOffset = randomNum(4000);
 		SetActorLocation(FVector(XOffset, YOffset, 0.f) + AUIFallingGridGem::FallingGrid->GetActorLocation());
 
 		fallingForce = -10.0f * randomNum(50);
-
-		//GetGemMesh()->AddForce(FVector(0, 0, fallingForce), NAME_None, true);
-
-		//GemSpin = FRotator(randomNum(10), randomNum(10), randomNum(10));
-		//SetActorRotation(GetActorRotation() + GemSpin);
 	}
 }
 

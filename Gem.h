@@ -51,7 +51,7 @@ public:
 	void HandleClicked();
 
 	UFUNCTION()
-	void Highlight(bool bOn);
+	void OnHovered(UPrimitiveComponent* HoveredComponent);
 
 	UFUNCTION()
 	void SwapGems(AGem* Object2);

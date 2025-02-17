@@ -27,6 +27,9 @@ AMatch3BlockGrid::AMatch3BlockGrid()
 	// Set defaults
     GridObject = this;
 
+    wasMatchAfterSwap = false;
+    trySwapToMatch = false;
+
     PrimaryActorTick.bCanEverTick = true;
 	Size = 9;
 	BlockSpacing = 300.f;
@@ -78,6 +81,11 @@ void AMatch3BlockGrid::CheckEmptyCell()
 
                     Grid[column][row]->gem->straightAnimation = true;
 
+                    if (Grid[column][row]->block != nullptr)
+                        {
+                            Grid[column][row]->block->GetBlockMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+                        }
+
                     //переміщуюмо знайдений гем на місце пропущеного
                     Grid[column][row]->gem->SwapOnPoint(Grid[column][row]->point);
 
@@ -89,23 +97,37 @@ void AMatch3BlockGrid::CheckEmptyCell()
 
     for (int column = 0; column < Size; column++)
     {
-        if(Grid[column][Size - 1]->gem == nullptr)
+        if(Grid[column][Size - 1]->gem == nullptr) 
         {
-            const FVector GemOverGrid = Grid[column][Size - 1]->point + FVector(0.f, Size, 0.f);
-
-            AGem* NewGem = GetWorld()->SpawnActor<AGem>(GemOverGrid, FRotator(0, 0, 0));
-
-            if (NewGem)
+            for (int row = 0; row < Size; row++)
             {
-                NewGem->columnInGrid = column;
-                NewGem->rowInGrid = Size - 1;
-                NewGem->straightAnimation = true;
+                if (Grid[column][row]->gem == nullptr)
+                {
+                    const float XOffset = ((row % Size) + Size - 1) * BlockSpacing ; // Divide by dimension
+                    const float YOffset = (column % Size) * BlockSpacing;
 
-                // Додаємо в відповідний рядок і стовпчик
-                Grid[column][Size - 1]->gem = NewGem;
+                    AGem* NewGem = GetWorld()->SpawnActor<AGem>((FVector(XOffset, YOffset, 40.f) + GetActorLocation()), FRotator(0, 0, 0));
 
-                //переміщуюмо знайдений гем на місце пропущеного у верхівці сітки
-                Grid[column][Size - 1]->gem->SwapOnPoint(Grid[column][Size - 1]->point);
+                    if (NewGem)
+                    {
+                        NewGem->columnInGrid = column;
+                        NewGem->rowInGrid = row;
+                        NewGem->straightAnimation = true;
+
+                        // Додаємо в відповідний рядок і стовпчик
+                        Grid[column][row]->gem = NewGem;
+
+                        Grid[column][row]->gem->straightAnimation = true;
+
+                        if (Grid[column][row]->block != nullptr)
+                        {
+                            Grid[column][row]->block->GetBlockMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+                        }
+
+                        //переміщуюмо знайдений гем на місце пропущеного у верхівці сітки
+                        Grid[column][row]->gem->SwapOnPoint(Grid[column][row]->point);
+                    }
+                }
             }
         }
     }
@@ -113,7 +135,7 @@ void AMatch3BlockGrid::CheckEmptyCell()
 
 void AMatch3BlockGrid::CheckMatch()
 {
-
+    GridObject->wasMatchAfterSwap = false;
     int consecutiveMatches(1);
 
     for (int column = 0; column < Size; column++)  //column
@@ -134,17 +156,23 @@ void AMatch3BlockGrid::CheckMatch()
             {
                 if (consecutiveMatches >= 2)
                 {
+                    wasMatchAfterSwap = true;
                     for (int tempRow = row; consecutiveMatches >= 0; consecutiveMatches--, tempRow--)
                     {
                         //Grid[column][tempRow]->gem->SetActorHiddenInGame(true);
                         Grid[column][tempRow]->gem->GetGemMesh()->SetSimulatePhysics(true);
                         Grid[column][tempRow]->gem->GetGemMesh()->SetEnableGravity(true);
+                        Grid[column][tempRow]->gem->GetGemMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+
+                        //Grid[column][tempRow]->gem->GetGemMesh()->SetCollisionObjectType(ECC_PhysicsBody);
 
                         //заборона викликання кліку у падаючого гема
-                        Grid[column][tempRow]->gem->GetGemMesh()->OnClicked.Clear(); 
-                        Grid[column][tempRow]->gem->GetGemMesh()->OnInputTouchBegin.Clear();
-
-                        Grid[column][tempRow]->gem->GetGemMesh()->AddForce(FVector(10000.0f, 0.0f, 5000.0f), NAME_None, true);
+                        //Grid[column][tempRow]->gem->GetGemMesh()->OnClicked.Clear(); 
+                        //Grid[column][tempRow]->gem->GetGemMesh()->OnInputTouchBegin.Clear();
+                        Grid[column][tempRow]->gem->GetGemMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore); // cursore ignore
+                        
+                        Grid[column][tempRow]->gem->GetGemMesh()->AddForce(FVector(50000.0f, (-100.0f * randomNum(50) + 100.0f * randomNum(50)), 10000.0f), NAME_None, true);
+                        //Grid[column][tempRow]->gem->GetGemMesh()->AddForce(FVector(10000.0f, 0.0f, 5000.0f), NAME_None, true);
 
                         Grid[column][tempRow]->gem->SetLifeSpan(5);
 
@@ -176,13 +204,23 @@ void AMatch3BlockGrid::CheckMatch()
             {
                 if (consecutiveMatches >= 2)
                 {
+                    wasMatchAfterSwap = true;
                     for (int tempColumn = column; consecutiveMatches >= 0; consecutiveMatches--, tempColumn--)
                     {
                         //Grid[tempColumn][row]->gem->SetActorHiddenInGame(true);
                         Grid[tempColumn][row]->gem->GetGemMesh()->SetSimulatePhysics(true);
                         Grid[tempColumn][row]->gem->GetGemMesh()->SetEnableGravity(true);
+                        Grid[tempColumn][row]->gem->GetGemMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 
-                        Grid[tempColumn][row]->gem->GetGemMesh()->AddForce(FVector(50000.0f, 0.0f, 10000.0f), NAME_None, true);
+                        //Grid[tempColumn][row]->gem->GetGemMesh()->SetCollisionObjectType(ECC_PhysicsBody);
+
+                        //заборона викликання кліку у падаючого гема
+                        //Grid[tempColumn][row]->gem->GetGemMesh()->OnClicked.Clear();
+                        //Grid[tempColumn][row]->gem->GetGemMesh()->OnInputTouchBegin.Clear();
+                        Grid[tempColumn][row]->gem->GetGemMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore); // cursore ignore
+
+                        Grid[tempColumn][row]->gem->GetGemMesh()->AddForce(FVector(50000.0f, (-10.0f * randomNum(10000) + 10.0f * randomNum(10000)), 10000.0f), NAME_None, true);
+                        //Grid[tempColumn][row]->gem->GetGemMesh()->AddForce(FVector(10000.0f, 0.0f, 5000.0f), NAME_None, true);
 
                         Grid[tempColumn][row]->gem->SetLifeSpan(5);
 
@@ -219,7 +257,7 @@ void AMatch3BlockGrid::CreateGrid()
 			// Spawn a block
 			AMatch3Block* NewBlock = GetWorld()->SpawnActor<AMatch3Block>(BlockLocation, FRotator(0, 0, 0));
 
-			AGem* NewGem = GetWorld()->SpawnActor<AGem>((BlockLocation + FVector(0, 0, 40.f)), FRotator(0, 0, 0));
+			AGem* NewGem = GetWorld()->SpawnActor<AGem>((BlockLocation + FVector(0, 0, 30.f)), FRotator(0, 0, 0));
 
 			if (NewBlock && NewGem)
 			{

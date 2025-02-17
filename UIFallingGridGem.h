@@ -52,9 +52,11 @@ public:
 	FRotator GemSpin;
 	int fallingForce;
 
-public:
+	virtual void BeginPlay();
 
-	// Called every frame
+	void StopFallingFast();
+	bool bFastFalling = true; // Чи падає кристал швидко
+
 	virtual void Tick(float DeltaTime) override;
 
 	friend class AUIFallingGridGem;

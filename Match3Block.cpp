@@ -117,6 +117,7 @@ void AMatch3Block::HandleClicked()
 				{
 					if (Grid[column][row]->gem != nullptr)           // якщо є два геми свапаємо їх
 					{
+						GridObject->trySwapToMatch = true;
 						Grid[column][row]->gem->SwapGems(Grid[newColumn][newRow]->gem);
 					}
 					if (Grid[column][row]->gem == nullptr)
@@ -159,13 +160,16 @@ void AMatch3Block::Highlight(bool bOn)
 		return;
 	}
 
-	if (bOn)
+	if (BlockMesh && BaseMaterial && BlueMaterial)
 	{
-		BlockMesh->SetMaterial(0, BaseMaterial);
-	}
-	else
-	{
-		BlockMesh->SetMaterial(0, BlueMaterial);
+		if (bOn)
+		{
+			BlockMesh->SetMaterial(0, BaseMaterial);
+		}
+		else
+		{
+			BlockMesh->SetMaterial(0, BlueMaterial);
+		}
 	}
 }
 
